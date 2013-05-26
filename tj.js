@@ -30,25 +30,6 @@
     }
 
     function typeToString(obj) {
-        /*var result = '';
-
-        if (obj === Number) {
-            result = 'Number';
-        } else if (obj === String) {
-            result = 'String';
-        } else if (obj === Array) {
-            result = 'Array';
-        } else if (obj === Boolean) {
-            result = 'Boolean';
-        } else if (obj === Object) {
-            result = 'Object';
-        } else if (obj === null) {
-            result = 'null';
-        } else if (typeof obj === 'undefined') {
-            result = 'undefined';
-        }
-
-        return result;*/
         var result = '';
 
         if (obj === null) {
@@ -115,9 +96,8 @@
     };
 
     tj.subscribe = function (eventName) {
-        var signature, callback, i;
+        var signature, callback, i, oldSignature, signaturesMatch;
 
-        // TODO: allow multiple subscribers
         if (!isString(eventName)) {
             throw new Error('tj.subscribe(): The event name must be a string');
         }
@@ -129,6 +109,22 @@
         signature = [];
         for (i = 1; i < arguments.length - 1; i++) {
             signature.push(arguments[i]);
+        }
+
+        if (eventSignatures.hasOwnProperty(eventName)) {
+            // there is already a subscriber to this event, so check if the signature matches
+            oldSignature = eventSignatures[eventName];
+            signaturesMatch = signature.length === oldSignature.length;
+
+            for (i = 0; i < signature.length && signaturesMatch; i++) {
+                signaturesMatch = signaturesMatch && signature[i] === oldSignature[i];
+            }
+
+            if (!signaturesMatch) {
+                throw new Error('tj.subscribe(): Event subscriber signature does not match previous subscriber(s) for event ' + eventName +
+                    '\n    old signature: ' + stringify(oldSignature, typeToString) +
+                    '\n    new signature: ' + stringify(signature, typeToString));
+            }
         }
 
         eventSignatures[eventName] = signature;

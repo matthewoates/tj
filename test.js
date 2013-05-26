@@ -28,3 +28,19 @@ tj.subscribe('POINT', Point,
 
 tj.publish('POINT', new Point(5, 4));
 tj.publish('POINT', {x: 5, y: 4});
+
+tj.subscribe('FOO',
+    function () {
+        console.log('foo1');
+    });
+tj.subscribe('FOO',
+    function () {
+        console.log('foo2');
+    });
+tj.publish('FOO');
+
+//tj.subscribe('MISMATCH', Number, Number, function () {});
+//tj.subscribe('MISMATCH', Number, function () {});
+
+tj.subscribe('M', Number, String, function () {});
+tj.subscribe('M', Number, Number, function () {});
