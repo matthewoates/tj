@@ -4,7 +4,8 @@
     var version = "0.0.1",
         tj = {},
         eventSignatures = {},
-        eventSubscribers = {};
+        eventSubscribers = {},
+        events = [];
 
     function isString(s) {
         return typeof s === 'string';
@@ -57,6 +58,28 @@
         return '(' + result.join(', ') + ')';
     }
 
+    function pushEvent(eventName, args) {
+        events.push({
+            name : eventName,
+            args : args
+        });
+
+        setTimeout(runEvents, 0);
+    }
+
+    function runEvents() {
+        var readyEvents = events;
+        events = [];
+
+        for (var i = 0; i < readyEvents.length; i++) {
+            var event = readyEvents[i];
+            var callbacks = eventSubscribers[event.name];
+            for (var j = 0; j < callbacks.length; j++) {
+                callbacks[j].apply(global, event.args);
+            }
+        }
+    }
+
     tj.publish = function (eventName) {
         var callbackArguments = [],
             callbacks,
@@ -83,13 +106,9 @@
         }
 
         if (signatureMatches) {
-            callbacks = eventSubscribers[eventName];
-
-            for (i = 0; i < callbacks.length; i++) {
-                callbacks[i].apply(global, callbackArguments);
-            }
+            pushEvent(eventName, callbackArguments);
         } else {
-            console.log('tj.publish(): Argument mismatch in event ' + eventName +
+            throw new Error('tj.publish(): Argument mismatch in event ' + eventName +
                 '\n    expected: ' + stringify(signature, typeToString) +
                 '\n    received: ' + stringify(callbackArguments, objToTypeString));
         }

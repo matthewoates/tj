@@ -18,7 +18,7 @@ tj.publish('MAX', [1, 2, 3]);
 function Point(x, y) {
     this.toString = function () {
         console.log('point:', x, y);
-    }
+    };
 }
 
 tj.subscribe('POINT', Point,
@@ -27,7 +27,7 @@ tj.subscribe('POINT', Point,
     });
 
 tj.publish('POINT', new Point(5, 4));
-tj.publish('POINT', {x: 5, y: 4});
+//tj.publish('POINT', {x: 5, y: 4});
 
 tj.subscribe('FOO',
     function () {
@@ -43,4 +43,6 @@ tj.publish('FOO');
 //tj.subscribe('MISMATCH', Number, function () {});
 
 tj.subscribe('M', Number, String, function () {});
-tj.subscribe('M', Number, Number, function () {});
+//tj.subscribe('M', Number, Number, function () {});
+tj.subscribe('M', Number, String, function () {});
+tj.publish('M', 5, '5');
