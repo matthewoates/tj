@@ -7,6 +7,18 @@
         eventSubscribers = {},
         events = [];
 
+    function isArray(a) {
+        return Array.isArray(a);
+    }
+
+    function isNumber(n) {
+        return typeof n === 'number';
+    }
+
+    function isBoolean(b) {
+        return !!b === b;
+    }
+
     function isString(s) {
         return typeof s === 'string';
     }
@@ -15,19 +27,25 @@
         return typeof f === 'function';
     }
 
+    function isObject(o) {
+        // typeof null === 'object'
+        return o instanceof Object;
+    }
+
     function matchesPredefinedType(arg, type) {
-        return (type === Array && Array.isArray(arg)) ||
-            (type === Number && typeof arg === 'number') ||
+        return (type === Array && isArray(arg)) ||
+            (type === Number && isNumber(arg)) ||
+            (type === Boolean && isBoolean(arg)) ||
             (type === String && isString(arg)) ||
             (type === Function && isFunction(arg));
     }
 
-    function matchesUserDefinedType(arg, type) {
+    function matchesType(arg, type) {
         return arg instanceof type;
     }
 
     function matches(arg, type) {
-        return matchesPredefinedType(arg, type) || matchesUserDefinedType(arg, type);
+        return matchesPredefinedType(arg, type) || matchesType(arg, type);
     }
 
     function typeToString(obj) {
@@ -156,6 +174,10 @@
     tj.toString = function () {
         return "You are running tj " + version;
     };
+
+    // for testing purposes
+    tj._matches = matches;
+    tj._typeToString = typeToString;
 
     global.tj = tj;
 }(window));
