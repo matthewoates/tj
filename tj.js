@@ -160,7 +160,7 @@
         if (eventSignatures.hasOwnProperty(eventName)) {
             // there is already a subscriber to this event, so check if the signature matches
             oldSignature = eventSignatures[eventName];
-            signaturesMatch = signature.length === oldSigna3ture.length;
+            signaturesMatch = signature.length === oldSignature.length;
 
             for (i = 0; i < signature.length && signaturesMatch; i++) {
                 signaturesMatch = signaturesMatch && signature[i] === oldSignature[i];
