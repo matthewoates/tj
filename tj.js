@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
 
-    var version = "0.0.1",
+    var version = '0.0.1',
         tj = {},
         eventSignatures = {},
         eventSubscribers = {},
@@ -25,6 +25,10 @@
 
     function isFunction(f) {
         return typeof f === 'function';
+    }
+
+    function isType(t) {
+        return t && t.prototype && t.prototype.constructor && t === t.prototype.constructor;
     }
 
     function isObject(o) {
@@ -133,7 +137,7 @@
     };
 
     tj.subscribe = function (eventName) {
-        var signature, callback, i, oldSignature, signaturesMatch;
+        var signature, callback, i, oldSignature, signaturesMatch, arg;
 
         if (!isString(eventName)) {
             throw new Error('tj.subscribe(): The event name must be a string');
@@ -145,13 +149,18 @@
 
         signature = [];
         for (i = 1; i < arguments.length - 1; i++) {
-            signature.push(arguments[i]);
+            arg = arguments[i];
+            if (!isType(arg)) {
+                throw new Error('tj.subscribe(): Signature can only consist of constructors');
+            }
+
+            signature.push(arg);
         }
 
         if (eventSignatures.hasOwnProperty(eventName)) {
             // there is already a subscriber to this event, so check if the signature matches
             oldSignature = eventSignatures[eventName];
-            signaturesMatch = signature.length === oldSignature.length;
+            signaturesMatch = signature.length === oldSigna3ture.length;
 
             for (i = 0; i < signature.length && signaturesMatch; i++) {
                 signaturesMatch = signaturesMatch && signature[i] === oldSignature[i];
@@ -172,7 +181,7 @@
     };
 
     tj.toString = function () {
-        return "You are running tj " + version;
+        return 'You are running tj ' + version;
     };
 
     // for testing purposes
