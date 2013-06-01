@@ -4,6 +4,18 @@
     var matches = tj._matches;
     var typeToString = tj._typeToString;
 
+    function Counter() {
+        var val = 0;
+
+        this.inc = function () {
+            val++;
+        }
+
+        this.val = function () {
+            return val;
+        }
+    }
+
     describe('matches() tests', function () {
         describe('pure JavaScript type recognition', function () {
             it('Array type', function () {
@@ -283,29 +295,139 @@
                     tj.publish('BADPUBSUB5', 5, null, 5);
                 }).toThrow();
             });
+
+            it('bad publish inside of an event should fail', function () {
+                tj.subscribe('BADPUBSUB6A', function () {
+                    expect(function () {
+                        tj.publish('BADPUBSUB6B');
+                    }).toThrow();
+                });
+                tj.subscribe('BADPUBSUB6B', Number, Number, Number, function (c) {
+
+                });
+
+                tj.publish('BADPUBSUB6A');
+            });
         });
 
-        it('passing publish subscribe tests (async)', function () {
-            // most simple case
-            /*runs(function () {
-                this.success = false;
+        describe('passing publish subscribe tests (async)', function () {
+            it('trivial case with no arguments', function () {
+                var success = false;
+                
                 tj.subscribe('SUCCESS1', function () {
-                    this.success = true;
+                    success = true;
                 });
                 tj.publish('SUCCESS1');
+                expect(success).toEqual(false);
+
+                waits(1);
+
+                runs(function () {
+                    expect(success).toEqual(true);
+                });
             });
 
-            waits(1);
+            it('data is being passed correctly', function () {
+                tj.subscribe('SUCCESS2', Number, Number, Number, Number, String, Boolean, Boolean, Array, Function, Object, function (one, two, three, four, str, t, f, arr, fn, o) {
+                    expect(one).toEqual(1);
+                    expect(two).toEqual(2);
+                    expect(three).toEqual(3);
+                    expect(four).toEqual(4);
+                    expect(str).toEqual('hello');
+                    expect(t).toEqual(true);
+                    expect(f).toEqual(false);
+                    expect(Array.isArray(arr)).toEqual(true);
+                    expect(arr.length).toEqual(0);
+                    expect(fn()).toEqual('yay');
+                    expect(o).toEqual(window);
+                });
 
-            runs(function () {
-                expect(this.success).toEqual(true);
-            });*/
+                tj.publish('SUCCESS2', 1, 2, 3, 4, 'hello', true, false, [], function () {return 'yay';}, window);
+            });
 
-            // multiple subscribers
+            it('multiple subscribers', function () {
+                var counter = new Counter();
+                tj.subscribe('SUCCESS3', Counter, function (c) {
+                    c.inc();
+                });
 
-            // ensure data is being passed correctly
+                tj.publish('SUCCESS3', counter);
+                tj.publish('SUCCESS3', counter);
 
-            // ensure events are async
+                expect(counter.val()).toEqual(0);
+
+                waits(1);
+
+                runs(function () {
+                    expect(counter.val()).toEqual(2);
+                })
+            });
+
+            it('subscribe order is preserved', function () {
+                tj.subscribe('SUCCESS4', Counter, function (c) {
+                    c.inc();
+                    expect(c.val()).toEqual(1);
+                });
+                tj.subscribe('SUCCESS4', Counter, function (c) {
+                    c.inc();
+                    expect(c.val()).toEqual(2);
+                });
+                tj.subscribe('SUCCESS4', Counter, function (c) {
+                    c.inc();
+                    expect(c.val()).toEqual(3);
+                });
+
+                tj.publish('SUCCESS4', new Counter());
+            });
+
+            it('publishing inside of an event should be async as well', function () {
+                var counter = new Counter();
+
+                tj.subscribe('SUCCESS5A', Counter, function (c) {
+                    tj.publish('SUCCESS5B', c);
+                    c.inc();
+                    expect(c.val()).toEqual(1);
+                });
+                tj.subscribe('SUCCESS5B', Counter, function (c) {
+                    c.inc();
+                    expect(c.val()).toEqual(2);
+                });
+
+                tj.publish('SUCCESS5A', counter);
+                expect(counter.val()).toEqual(0);
+
+                waits(1);
+
+                runs(function () {
+                    expect(counter.val()).toEqual(2);
+                });
+            });
+
+            it('subscribing the same function multiple times will cause multiple runs per event', function () {
+                var counterA = new Counter(), counterB = new Counter();
+
+                function s(c) {
+                    c.inc();
+                }
+
+                tj.subscribe('SUCCESS6', Counter, s);
+                tj.subscribe('SUCCESS6', Counter, s);
+                tj.subscribe('SUCCESS6', Counter, s);
+
+                tj.publish('SUCCESS6', counterA);
+                tj.publish('SUCCESS6', counterA);
+                tj.publish('SUCCESS6', counterB);
+                tj.publish('SUCCESS6', counterA);
+                tj.publish('SUCCESS6', counterA);
+                tj.publish('SUCCESS6', counterB);
+
+                waits(1);
+
+                runs(function () {
+                    expect(counterA.val()).toEqual(12);
+                    expect(counterB.val()).toEqual(6);
+                });
+            });
         });
     });
 }());
