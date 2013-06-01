@@ -17,6 +17,80 @@
     }
 
     describe('matches() tests', function () {
+        describe('special type recognition', function () {
+            it('any type', function () {
+                expect(matches([], tj.any)).toEqual(true);
+                expect(matches([1, 2, 3], tj.any)).toEqual(true);
+                expect(matches(null, tj.any)).toEqual(true);
+                expect(matches(undefined, tj.any)).toEqual(true);
+                expect(matches(0, tj.any)).toEqual(true);
+                expect(matches(-5, tj.any)).toEqual(true);
+                expect(matches(0.2, tj.any)).toEqual(true);
+                expect(matches(NaN, tj.any)).toEqual(true);
+                expect(matches(Infinity, tj.any)).toEqual(true);
+                expect(matches(-Infinity, tj.any)).toEqual(true);
+                expect(matches(true, tj.any)).toEqual(true);
+                expect(matches(false, tj.any)).toEqual(true);
+                expect(matches('', tj.any)).toEqual(true);
+                expect(matches(function () {}, tj.any)).toEqual(true);
+                expect(matches({}, tj.any)).toEqual(true);
+            });
+
+            it('defined type', function () {
+                expect(matches([], tj.defined)).toEqual(true);
+                expect(matches([1, 2, 3], tj.defined)).toEqual(true);
+                expect(matches(null, tj.defined)).toEqual(false);
+                expect(matches(undefined, tj.defined)).toEqual(false);
+                expect(matches(0, tj.defined)).toEqual(true);
+                expect(matches(-5, tj.defined)).toEqual(true);
+                expect(matches(0.2, tj.defined)).toEqual(true);
+                expect(matches(NaN, tj.defined)).toEqual(false);
+                expect(matches(Infinity, tj.defined)).toEqual(false);
+                expect(matches(-Infinity, tj.defined)).toEqual(false);
+                expect(matches(true, tj.defined)).toEqual(true);
+                expect(matches(false, tj.defined)).toEqual(true);
+                expect(matches('', tj.defined)).toEqual(true);
+                expect(matches(function () {}, tj.defined)).toEqual(true);
+                expect(matches({}, tj.defined)).toEqual(true);
+            });
+
+            it('realNumber type', function () {
+                expect(matches([], tj.realNumber)).toEqual(false);
+                expect(matches([1, 2, 3], tj.realNumber)).toEqual(false);
+                expect(matches(null, tj.realNumber)).toEqual(false);
+                expect(matches(undefined, tj.realNumber)).toEqual(false);
+                expect(matches(0, tj.realNumber)).toEqual(true);
+                expect(matches(-5, tj.realNumber)).toEqual(true);
+                expect(matches(0.2, tj.realNumber)).toEqual(true);
+                expect(matches(NaN, tj.realNumber)).toEqual(false);
+                expect(matches(Infinity, tj.realNumber)).toEqual(false);
+                expect(matches(-Infinity, tj.realNumber)).toEqual(false);
+                expect(matches(true, tj.realNumber)).toEqual(false);
+                expect(matches(false, tj.realNumber)).toEqual(false);
+                expect(matches('', tj.realNumber)).toEqual(false);
+                expect(matches(function () {}, tj.realNumber)).toEqual(false);
+                expect(matches({}, tj.realNumber)).toEqual(false);
+            });
+
+            it('integer type', function () {
+                expect(matches([], tj.integer)).toEqual(false);
+                expect(matches([1, 2, 3], tj.integer)).toEqual(false);
+                expect(matches(null, tj.integer)).toEqual(false);
+                expect(matches(undefined, tj.integer)).toEqual(false);
+                expect(matches(0, tj.integer)).toEqual(true);
+                expect(matches(-5, tj.integer)).toEqual(true);
+                expect(matches(0.2, tj.integer)).toEqual(false);
+                expect(matches(NaN, tj.integer)).toEqual(false);
+                expect(matches(Infinity, tj.integer)).toEqual(false);
+                expect(matches(-Infinity, tj.integer)).toEqual(false);
+                expect(matches(true, tj.integer)).toEqual(false);
+                expect(matches(false, tj.integer)).toEqual(false);
+                expect(matches('', tj.integer)).toEqual(false);
+                expect(matches(function () {}, tj.integer)).toEqual(false);
+                expect(matches({}, tj.integer)).toEqual(false);
+            });
+        });
+
         describe('pure JavaScript type recognition', function () {
             it('Array type', function () {
                 expect(matches([], Array)).toEqual(true);

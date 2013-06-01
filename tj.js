@@ -2,7 +2,12 @@
     'use strict';
 
     var version = '0.0.1',
-        tj = {},
+        tj = {
+            any : {},
+            defined : {},
+            realNumber : {},
+            integer : {}
+        },
         eventSignatures = {},
         eventSubscribers = {},
         events = [];
@@ -27,6 +32,10 @@
         return typeof f === 'function';
     }
 
+    function isActuallyNaN(x) {
+        return isNumber(x) && isNaN(x);
+    }
+
     function isType(t) {
         // In safari things like HTMLElement and Event are objects and not functions.
         // False positives are better than false negatives
@@ -38,6 +47,29 @@
         return o instanceof Object;
     }
 
+    function matchesSpecialType(arg, type) {
+        var result = false;
+
+        if (type === tj.any) {
+            result = true;
+        } else if (type === tj.defined) {
+            result = arg !== null &&
+                typeof arg !== 'undefined' &&
+                arg !== Infinity &&
+                arg !== -Infinity &&
+                !isActuallyNaN(arg);
+        } else if (type === tj.realNumber) {
+            result = isNumber(arg) &&
+                arg !== Infinity &&
+                arg !== -Infinity &&
+                !isActuallyNaN(arg);
+        } else if (type === tj.integer) {
+            result = isNumber(arg) && arg % 1 === 0;
+        }
+
+        return result;
+    }
+
     function matchesPredefinedType(arg, type) {
         return (type === Array && isArray(arg)) ||
             (type === Number && isNumber(arg)) ||
@@ -47,11 +79,17 @@
     }
 
     function matchesType(arg, type) {
-        return arg instanceof type;
+        try {
+            return arg instanceof type;
+        } catch (e) {
+            return false;
+        }
     }
 
     function matches(arg, type) {
-        return matchesPredefinedType(arg, type) || matchesType(arg, type);
+        return matchesSpecialType(arg, type) ||
+            matchesPredefinedType(arg, type) ||
+            matchesType(arg, type);
     }
 
     function typeToString(obj) {
@@ -61,6 +99,14 @@
             result = 'null';
         } else if (typeof obj === 'undefined') {
             result = 'undefined';
+        } else if (obj === tj.any) {
+            result = 'tj.any';
+        } else if (obj === tj.defined) {
+            result = 'tj.defined';
+        } else if (obj === tj.realNumber) {
+            result = 'tj.realNumber';
+        } else if (obj === tj.integer) {
+            result = 'tj.integer';
         } else {
             result = obj.name;
         }
@@ -115,7 +161,7 @@
             throw new Error('tj.publish(): The event name must be a string');
         }
         if (!eventSubscribers.hasOwnProperty(eventName)) {
-            throw new Error('tj.publish(): ' + eventName + 'is not a registered event.');
+            throw new Error('tj.publish(): ' + eventName + ' is not a registered event.');
         }
 
         for (i = 1; i < arguments.length; i++) {
