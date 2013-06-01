@@ -28,7 +28,9 @@
     }
 
     function isType(t) {
-        return t && t.prototype && t.prototype.constructor && t === t.prototype.constructor;
+        // In safari things like HTMLElement and Event are objects and not functions.
+        // False positives are better than false negatives
+        return isFunction(t) || isObject(t);
     }
 
     function isObject(o) {

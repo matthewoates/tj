@@ -137,18 +137,14 @@
             });
 
             it('the first parameter must be a string', function () {
-                // the first parameter must be a string
                 expect(function () {
                     tj.subscribe(1234, function () {});
                 }).toThrow();
             });
 
-            it('the signature can only contain constructors (Functions)', function () {
+            it('the signature can only contain constructors', function () {
                 expect(function () {
                     tj.subscribe('BAD1', 0, function () {});
-                }).toThrow();
-                expect(function () {
-                    tj.subscribe('BAD2', Number, Number, [], function () {});
                 }).toThrow();
                 expect(function () {
                     tj.subscribe('BAD3', Number, Number, 0, function () {});
@@ -158,9 +154,6 @@
                 }).toThrow();
                 expect(function () {
                     tj.subscribe('BAD5', Number, Number, '', function () {});
-                }).toThrow();
-                expect(function () {
-                    tj.subscribe('BAD6', Number, Number, {}, function () {});
                 }).toThrow();
                 expect(function () {
                     tj.subscribe('BAD7', Number, Number, null, function () {});
@@ -431,29 +424,3 @@
         });
     });
 }());
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
