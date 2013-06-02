@@ -1,16 +1,15 @@
-(function (global) {
+(function (tj) {
     'use strict';
 
     var version = '0.0.1',
-        tj = {
-            any : {},
-            defined : {},
-            realNumber : {},
-            integer : {}
-        },
         eventSignatures = {},
         eventSubscribers = {},
         events = [];
+
+    tj.any = {};
+    tj.defined = {};
+    tj.realNumber = {};
+    tj.integer = {};
 
     function isArray(a) {
         return Array.isArray(a);
@@ -19,8 +18,8 @@
     function isNumber(n) {
         return typeof n === 'number';
     }
-
-    function isBoolean(b) {
+function
+     isBoolean(b) {
         return !!b === b;
     }
 
@@ -145,7 +144,7 @@
             var event = readyEvents[i];
             var callbacks = eventSubscribers[event.name];
             for (var j = 0; j < callbacks.length; j++) {
-                callbacks[j].apply(global, event.args);
+                callbacks[j].apply(tj, event.args);
             }
         }
     }
@@ -235,6 +234,4 @@
     // for testing purposes
     tj._matches = matches;
     tj._typeToString = typeToString;
-
-    global.tj = tj;
-}(window));
+}(typeof exports === 'undefined' ? this.tj = {} : exports));
