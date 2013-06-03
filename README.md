@@ -1,7 +1,7 @@
 TJ
 =========
 
-TJ is a type safe publish subscribe API in JavaScript.
+TJ is a type safe publish subscribe API in JavaScript that works in the browser and Node.js.
 
 You can do things like:
 ```javascript

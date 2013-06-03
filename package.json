@@ -13,7 +13,9 @@
         "publish",
         "subscribe",
         "pubsub",
-        "type safe"
+        "type safe",
+        "node",
+        "node.js"
     ],  
     "license": "MIT",
     "engines": {
