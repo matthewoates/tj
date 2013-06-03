@@ -55,6 +55,10 @@ npm install tj
 For the browser:
 Include tj.js
 
+Testing
+--------------
+To run the automated tests, open test.html
+Tests passing in IE7+, Chrome, Firefox, Safari, and Opera
 
 License
 -
