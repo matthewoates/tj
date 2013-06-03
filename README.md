@@ -5,8 +5,6 @@ TJ is a type safe publish subscribe API in JavaScript.
 
 You can do things like:
 ```javascript
-console.log('hello');
-
 tj.subscribe('ADD_NUMBERS', Number, Number,
     function (a, b) {
         console.log(a + b);
@@ -15,7 +13,39 @@ tj.subscribe('ADD_NUMBERS', Number, Number,
 
 tj.publish('ADD_NUMBERS', 1, 2);
 tj.publish('ADD_NUMBERS', '1', '2'); // error
+tj.publish('ADD_NUMBERS'); // error
+tj.publish('ADD_NUMBERS', 1, 2, 3); // error
 ```
+
+User-defined types are also recognized.
+```javascript
+function Point(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
+tj.subscribe('NEW_POINT', Point,
+    function (p) {
+        console.log(p.x, p.y);
+    }
+);
+
+tj.publish('NEW_POINT', new Point(1, 2));
+tj.publish('NEW_POINT', {x: 1, y: 2}); // error
+```
+
+You can also use DOM objects:
+```javascript
+tj.subscribe('NEW_P', HTMLElement,
+    function (p) {
+        document.body.appendChild(p);
+    }
+);
+
+tj.publish('NEW_P', document.createElement('p'));
+tj.publish('NEW_P', {}); // error
+```
+
 Installation
 --------------
 For node.js:
