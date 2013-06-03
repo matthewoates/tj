@@ -35,18 +35,18 @@
         return isNumber(x) && isNaN(x);
     }
 
-    function isType(t) {
-        // In safari things like HTMLElement and Event are objects and not functions.
-        // False positives are better than false negatives
-        return isFunction(t) || isObject(t);
-    }
-
     function isObject(o) {
         return o !== null &&
             typeof o !== 'undefined' &&
             !isNumber(o) &&
             !isBoolean(o) &&
             !isString(o);
+    }
+
+    function isType(t) {
+        // In safari things like HTMLElement and Event are objects and not functions.
+        // False positives are better than false negatives
+        return isFunction(t) || isObject(t);
     }
 
     function matchesSpecialType(arg, type) {
@@ -141,13 +141,18 @@
     }
 
     function runEvents() {
-        var readyEvents = events;
+        var readyEvents = events,
+            event,
+            callbacks,
+            i,
+            j;
+
         events = [];
 
-        for (var i = 0; i < readyEvents.length; i++) {
-            var event = readyEvents[i];
-            var callbacks = eventSubscribers[event.name];
-            for (var j = 0; j < callbacks.length; j++) {
+        for (i = 0; i < readyEvents.length; i++) {
+            event = readyEvents[i];
+            callbacks = eventSubscribers[event.name];
+            for (j = 0; j < callbacks.length; j++) {
                 callbacks[j].apply(tj, event.args);
             }
         }
@@ -155,7 +160,6 @@
 
     tj.publish = function (eventName) {
         var callbackArguments = [],
-            callbacks,
             signature,
             signatureMatches,
             i;

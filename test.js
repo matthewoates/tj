@@ -9,11 +9,11 @@
 
         this.inc = function () {
             val++;
-        }
+        };
 
         this.val = function () {
             return val;
-        }
+        };
     }
 
     describe('matches() tests', function () {
