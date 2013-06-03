@@ -12,14 +12,14 @@
     tj.integer = {};
 
     function isArray(a) {
-        return Array.isArray(a);
+        return Object.prototype.toString.call(a) === '[object Array]';
     }
 
     function isNumber(n) {
         return typeof n === 'number';
     }
-function
-     isBoolean(b) {
+
+    function isBoolean(b) {
         return !!b === b;
     }
 
@@ -42,8 +42,11 @@ function
     }
 
     function isObject(o) {
-        // typeof null === 'object'
-        return o instanceof Object;
+        return o !== null &&
+            typeof o !== 'undefined' &&
+            !isNumber(o) &&
+            !isBoolean(o) &&
+            !isString(o);
     }
 
     function matchesSpecialType(arg, type) {
@@ -74,7 +77,8 @@ function
             (type === Number && isNumber(arg)) ||
             (type === Boolean && isBoolean(arg)) ||
             (type === String && isString(arg)) ||
-            (type === Function && isFunction(arg));
+            (type === Function && isFunction(arg)) ||
+            (type === Object && isObject(arg));
     }
 
     function matchesType(arg, type) {

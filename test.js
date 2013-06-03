@@ -158,7 +158,7 @@
 
             it('Object type', function () {
                 expect(matches({}, Object)).toEqual(true);
-                expect(matches(window, Object)).toEqual(true);
+                expect(matches(Number, Object)).toEqual(true);
                 expect(matches(tj, Object)).toEqual(true);
                 expect(matches([], Object)).toEqual(true);
                 expect(matches(null, Object)).toEqual(false);
@@ -183,16 +183,19 @@
         });
 
         describe('DOM type recognition', function () {
-            it('HTMLElement type', function () {
-                var p = document.createElement('p');
-                expect(matches(p, HTMLElement)).toEqual(true);
-                expect(matches(p, Array)).toEqual(false);
-                expect(matches(p, Number)).toEqual(false);
-                expect(matches(p, Boolean)).toEqual(false);
-                expect(matches(p, String)).toEqual(false);
-                expect(matches(p, Function)).toEqual(false);
-                expect(matches(p, Object)).toEqual(true);
-            });
+            if (typeof HTMLParagraphElement !== 'undefined') {
+                // HTMLParagraphElement is undefined in IE7
+                it('HTMLParagraphElement type', function () {
+                    var p = document.createElement('p');
+                    expect(matches(p, HTMLParagraphElement)).toEqual(true);
+                    expect(matches(p, Array)).toEqual(false);
+                    expect(matches(p, Number)).toEqual(false);
+                    expect(matches(p, Boolean)).toEqual(false);
+                    expect(matches(p, String)).toEqual(false);
+                    expect(matches(p, Function)).toEqual(false);
+                    expect(matches(p, Object)).toEqual(true);
+                });
+            }
         });
     });
 
@@ -285,33 +288,36 @@
                 expect(function () {
                     tj.subscribe('PASS4', Boolean, function () {});
                 }).not.toThrow();
-                
+
                 expect(function () {
                     tj.subscribe('PASS5', String, function () {});
                 }).not.toThrow();
-                
+
                 expect(function () {
                     tj.subscribe('PASS6', Function, function () {});
                 }).not.toThrow();
-                
+
                 expect(function () {
                     tj.subscribe('PASS7', Object, function () {});
                 }).not.toThrow();
             });
-            
+
             it('subscribe with multiple arguments of mixed types', function () {
                 expect(function () {
                     tj.subscribe('PASS8', Array, Number, Boolean, String, Object, function () {});
                 }).not.toThrow();
-                
-                expect(function () {
-                    tj.subscribe('PASS9', HTMLElement, function () {});
-                }).not.toThrow();
-                
-                expect(function () {
-                    tj.subscribe('PASS10', HTMLElement, Foo, Foo, Array, Number, Object, Foo, function () {});
-                }).not.toThrow();
-                
+
+                if (typeof Event !== 'undefined') {
+                    // Event is undefined in IE7
+                    expect(function () {
+                        tj.subscribe('PASS9', Event, function () {});
+                    }).not.toThrow();
+
+                    expect(function () {
+                        tj.subscribe('PASS10', Event, Foo, Foo, Array, Number, Object, Foo, function () {});
+                    }).not.toThrow();
+                }
+
                 expect(function () {
                     tj.subscribe('PASS11', Foo, function () {});
                 }).not.toThrow();
@@ -380,7 +386,7 @@
         describe('passing publish subscribe tests (async)', function () {
             it('trivial case with no arguments', function () {
                 var success = false;
-                
+
                 tj.subscribe('SUCCESS1', function () {
                     success = true;
                 });
@@ -403,7 +409,7 @@
                     expect(str).toEqual('hello');
                     expect(t).toEqual(true);
                     expect(f).toEqual(false);
-                    expect(Array.isArray(arr)).toEqual(true);
+                    expect(Object.prototype.toString.call(arr)).toEqual('[object Array]');
                     expect(arr.length).toEqual(0);
                     expect(fn()).toEqual('yay');
                     expect(o).toEqual(window);
