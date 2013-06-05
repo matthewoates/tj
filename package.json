@@ -1,6 +1,6 @@
 {
     "name": "tj",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "author": "Matthew Oates",
     "description": "A type safe publish subscribe API in JavaScript",
     "main": "./tj.js",
