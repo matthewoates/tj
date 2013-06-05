@@ -16,7 +16,7 @@
     }
 
     function isNumber(n) {
-        return typeof n === 'number';
+        return Object.prototype.toString.call(n) === '[object Number]';
     }
 
     function isBoolean(b) {
@@ -24,11 +24,11 @@
     }
 
     function isString(s) {
-        return typeof s === 'string';
+        return Object.prototype.toString.call(s) === '[object String]';
     }
 
     function isFunction(f) {
-        return typeof f === 'function';
+        return Object.prototype.toString.call(f) === '[object Function]';
     }
 
     function isActuallyNaN(x) {
@@ -36,11 +36,7 @@
     }
 
     function isObject(o) {
-        return o !== null &&
-            typeof o !== 'undefined' &&
-            !isNumber(o) &&
-            !isBoolean(o) &&
-            !isString(o);
+        return new Object(o) === o;
     }
 
     function isType(t) {
