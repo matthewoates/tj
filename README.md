@@ -25,7 +25,7 @@ When the callback function runs, you know that `a` and `b` are of type `Number`.
 
 
 # Methods
-## subscribe
+### subscribe
 ```javascript
 tj.subscribe(eventName, argType1, argType2, argType3, ..., callbackFunction);
 ```
@@ -38,7 +38,7 @@ For a successful call to `tj.subscribe()`, the following criteria must be met:
 - if an event has already been published with the same `eventName`, the signature cannot conflict
 
 
-## publish
+### publish
 ```javascript
 tj.publish(eventName, arg1, arg2, arg3, ...);
 ```
@@ -54,7 +54,7 @@ For a successful call to `tj.publish()`, the following criteria must be met:
 # Types
 TJ supports the basic JavaScript types, as well as a few special types. Rows are example values, and columns are types.
 
-## JavaScript types
+### JavaScript Types
 |matches                                 | **Array** | **Number** | **Boolean** | **String** | **Function** | **Object** |
 | -------------------------------------- | --------- | ---------- | ----------- | ---------- | ------------ | ---------- |
 |null, undefined                         |   no      |   no       |   no        |   no       |   no         |   no       |
@@ -67,7 +67,7 @@ TJ supports the basic JavaScript types, as well as a few special types. Rows are
 |{}                                      |   no      |   no       |   no        |   no       |   no         |   yes      |
 |function () {}, console, window, Object |   no      |   no       |   no        |   no       |   yes        |   yes      |
 
-## Special Types
+### Special Types
 |matches                                 | **tj.any** | **tj.defined** | **tj.realNumber** | **tj.integer** |
 | -------------------------------------- | ---------- | -------------- | ----------------- | -------------- |
 |null, undefined                         |   yes      |   no           |   no              |   no           |
@@ -137,11 +137,13 @@ tj.subscribe('NEW_P', HTMLElement,
 
 As well as many others:
 ```javascript
-tj.subscribe('MATCHES', String, RegExp,
-    function (str, exp) {
-
+tj.subscribe('MATCHES', String, String, RegExp,
+    function (str, rep, exp) {
+        alert(str.replace(exp, rep));
     }
 );
+
+tj.publish('MATCHES', 'this is cool', 'awesome', /cool/);
 ```
 
 Don't forget about the special types:
