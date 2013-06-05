@@ -54,17 +54,31 @@ For a successful call to `tj.publish()`, the following criteria must be met:
 # Types
 TJ supports the basic JavaScript types, as well as a few special types. Rows are example values, and columns are types.
 
-|matches                                 | **Array** | **Number** | **Boolean** | **String** | **Function** | **Object** | **tj.any** | **tj.defined** | **tj.realNumber** | **tj.integer** |
-| -------------------------------------- | --------- | ---------- | ----------- | ---------- | ------------ | ---------- | ---------- | -------------- | ----------------- | -------------- |
-|null, undefined                         |   no      |   no       |   no        |   no       |   no         |   no       |   yes      |   no           |   no              |   no           |
-|NaN, Infinity                           |   no      |   yes      |   no        |   no       |   no         |   no       |   yes      |   no           |   no              |   no           |
-|0, 2, -5                                |   no      |   yes      |   no        |   no       |   no         |   no       |   yes      |   yes          |   yes             |   yes          |
-|0.5, Math.PI                            |   no      |   yes      |   no        |   no       |   no         |   no       |   yes      |   yes          |   yes             |   no           |
-|true, false                             |   no      |   no       |   yes       |   no       |   no         |   no       |   yes      |   yes          |   no              |   no           |
-|"", "hello"                             |   no      |   no       |   no        |   yes      |   no         |   no       |   yes      |   yes          |   no              |   no           |
-|[], [1, 2, 3]                           |   yes     |   no       |   no        |   no       |   no         |   yes      |   yes      |   yes          |   no              |   no           |
-|{}                                      |   no      |   no       |   no        |   no       |   no         |   yes      |   yes      |   yes          |   no              |   no           |
-|function () {}, console, window, Object |   no      |   no       |   no        |   no       |   yes        |   yes      |   yes      |   yes          |   no              |   no           |
+## JavaScript types
+|matches                                 | **Array** | **Number** | **Boolean** | **String** | **Function** | **Object** |
+| -------------------------------------- | --------- | ---------- | ----------- | ---------- | ------------ | ---------- |
+|null, undefined                         |   no      |   no       |   no        |   no       |   no         |   no       |
+|NaN, Infinity                           |   no      |   yes      |   no        |   no       |   no         |   no       |
+|0, 2, -5                                |   no      |   yes      |   no        |   no       |   no         |   no       |
+|0.5, Math.PI                            |   no      |   yes      |   no        |   no       |   no         |   no       |
+|true, false                             |   no      |   no       |   yes       |   no       |   no         |   no       |
+|"", "hello"                             |   no      |   no       |   no        |   yes      |   no         |   no       |
+|[], [1, 2, 3]                           |   yes     |   no       |   no        |   no       |   no         |   yes      |
+|{}                                      |   no      |   no       |   no        |   no       |   no         |   yes      |
+|function () {}, console, window, Object |   no      |   no       |   no        |   no       |   yes        |   yes      |
+
+## Special Types
+|matches                                 | **tj.any** | **tj.defined** | **tj.realNumber** | **tj.integer** |
+| -------------------------------------- | ---------- | -------------- | ----------------- | -------------- |
+|null, undefined                         |   yes      |   no           |   no              |   no           |
+|NaN, Infinity                           |   yes      |   no           |   no              |   no           |
+|0, 2, -5                                |   yes      |   yes          |   yes             |   yes          |
+|0.5, Math.PI                            |   yes      |   yes          |   yes             |   no           |
+|true, false                             |   yes      |   yes          |   no              |   no           |
+|"", "hello"                             |   yes      |   yes          |   no              |   no           |
+|[], [1, 2, 3]                           |   yes      |   yes          |   no              |   no           |
+|{}                                      |   yes      |   yes          |   no              |   no           |
+|function () {}, console, window, Object |   yes      |   yes          |   no              |   no           |
 
 *Note: Arrays are considered Objects, and null is not considered an Object*
 *This is because properties can be assigned to Arrays but cannot be assigned to null*
@@ -155,72 +169,3 @@ Tests passing in IE7+, Chrome, Firefox, Safari, and Opera
 
 # License
 MIT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-You can do things like:
-```javascript
-tj.subscribe('ADD_NUMBERS', Number, Number,
-    function (a, b) {
-        console.log(a + b);
-    }
-);
-
-tj.publish('ADD_NUMBERS', 1, 2);
-tj.publish('ADD_NUMBERS', '1', '2'); // error
-tj.publish('ADD_NUMBERS'); // error
-tj.publish('ADD_NUMBERS', 1, 2, 3); // error
-```
-
-User-defined types are also recognized.
-```javascript
-function Point(x, y) {
-    this.x = x;
-    this.y = y;
-}
-
-tj.subscribe('NEW_POINT', Point,
-    function (p) {
-        console.log(p.x, p.y);
-    }
-);
-
-tj.publish('NEW_POINT', new Point(1, 2));
-tj.publish('NEW_POINT', {x: 1, y: 2}); // error
-```
-
-You can also use DOM objects:
-```javascript
-tj.subscribe('NEW_P', HTMLElement,
-    function (p) {
-        document.body.appendChild(p);
-    }
-);
-
-tj.publish('NEW_P', document.createElement('p'));
-tj.publish('NEW_P', {}); // error
-```
