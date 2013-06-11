@@ -130,9 +130,12 @@ You can use DOM objects:
 ```javascript
 tj.subscribe('NEW_P', HTMLElement,
     function (p) {
+        p.innerHTML = 'hi';
         document.body.appendChild(p);
     }
 );
+
+tj.publish('NEW_P', document.createElement('p'));
 ```
 
 As well as many others:
@@ -150,7 +153,7 @@ Don't forget about the special types:
 ```javascript
 tj.subscribe('RANDOM', tj.any, tj.defined, tj.realNumber, tj.integer,
     function (a, b, c, d) {
-        if (b && c && d % 1 === 0) {
+        if (b && (c || c !== 0) && d % 1 === 0) {
             alert('This function is pretty useless, but this if will always pass');
         }
     }
