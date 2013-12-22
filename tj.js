@@ -1,241 +1,234 @@
-(function (tj) {
+(function (tj, global) {
     'use strict';
 
-    var version = '0.0.2',
-        eventSignatures = {},
+    var is = {};
+    tj._is = is;
+    global.is = is;
+
+    (function (is) {
+        is.array = function (a) {
+            return Object.prototype.toString.call(a) === '[object Array]';
+        };
+
+        is.bool = function (b) {
+            return !!b === b;
+        };
+
+        is.defined = function (x) {
+            return x !== null &&
+                !is.undefined(x) &&
+                x !== Infinity &&
+                x !== -Infinity &&
+                !is.nan(x);
+        }
+
+        is.fn = function (f) {
+            return Object.prototype.toString.call(f) === '[object Function]';
+        };
+
+        is.integer = function (x) {
+            return is.number(x) && x % 1 === 0;
+        }
+
+        is.nan = function (n) {
+            return is.number(n) && isNaN(n);
+        };
+
+        is.number = function (n) {
+            return Object.prototype.toString.call(n) === '[object Number]';
+        };
+
+        is.object = function (o) {
+            return new Object(o) === o;
+        };
+
+        is.realNumber = function (n) {
+            return is.number(n) &&
+                n !== Infinity &&
+                n !== -Infinity &&
+                !is.nan(n);
+        };
+
+        is.string = function (s) {
+            return Object.prototype.toString.call(s) === '[object String]';
+        };
+
+        is.undefined = function (o) {
+            return (typeof o === 'undefined');
+        };
+
+        is.any = function (o) {
+            return true;
+        };
+
+        is.instanceOf = function (constructor) {
+            return function (o) {
+                return is.fn(constructor) && (o instanceof constructor);
+            };
+        };
+    }(is));
+
+
+
+
+    var invalidSignatureError = new Error('tj.subscribe: Invalid signature');
+    var subEventNameError = new Error('tj.subscribe: eventName is not a string');
+    var pubEventNameError = new Error('tj.publish: eventName is not a string');
+    var noCallbackError = new Error('tj.subscribe: Last paramater must be a callback function');
+    var badTokenError = new Error('tj.unsubscribe: bad token, or the subscriber with this token has already been unsubscribed');
+    var pubSignatureMismatch = new Error('tj.publish: signature mismatch');
+    var queuedEvents = [];
+
+    var setImmediate = global.setImmediate || (function (fn) {
+        return setTimeout(fn, 0);
+    });
+
+    var queuedEvents = [],
         eventSubscribers = {},
-        events = [];
+        eventSignatures = {},
+        allSubscribers = {}; // token -> subscriber
 
-    tj.any = {};
-    tj.defined = {};
-    tj.realNumber = {};
-    tj.integer = {};
+    // this token is used to unsubscribe
+    var getToken = (function () {
+        var token = 0;
 
-    function isArray(a) {
-        return Object.prototype.toString.call(a) === '[object Array]';
+        return function () {
+            token += 1;
+            return String(token);
+        };
+    }());
+
+    function removeElement(arr, index) {
+        // element at index <index> is removed and returned
+        return arr.splice(index, 1)[0];
     }
 
-    function isNumber(n) {
-        return Object.prototype.toString.call(n) === '[object Number]';
-    }
+    function isValidSignature(signature) {
+        var success = true,
+            i;
 
-    function isBoolean(b) {
-        return !!b === b;
-    }
-
-    function isString(s) {
-        return Object.prototype.toString.call(s) === '[object String]';
-    }
-
-    function isFunction(f) {
-        return Object.prototype.toString.call(f) === '[object Function]';
-    }
-
-    function isActuallyNaN(x) {
-        return isNumber(x) && isNaN(x);
-    }
-
-    function isObject(o) {
-        return new Object(o) === o;
-    }
-
-    function isType(t) {
-        // In safari things like HTMLElement and Event are objects and not functions.
-        // False positives are better than false negatives
-        return isFunction(t) || isObject(t);
-    }
-
-    function matchesSpecialType(arg, type) {
-        var result = false;
-
-        if (type === tj.any) {
-            result = true;
-        } else if (type === tj.defined) {
-            result = arg !== null &&
-                typeof arg !== 'undefined' &&
-                arg !== Infinity &&
-                arg !== -Infinity &&
-                !isActuallyNaN(arg);
-        } else if (type === tj.realNumber) {
-            result = isNumber(arg) &&
-                arg !== Infinity &&
-                arg !== -Infinity &&
-                !isActuallyNaN(arg);
-        } else if (type === tj.integer) {
-            result = isNumber(arg) && arg % 1 === 0;
+        for (i = 0; i < signature.length && success; i++) {
+            success = is.fn(signature[i]);
         }
 
-        return result;
+        return success;
     }
 
-    function matchesPredefinedType(arg, type) {
-        return (type === Array && isArray(arg)) ||
-            (type === Number && isNumber(arg)) ||
-            (type === Boolean && isBoolean(arg)) ||
-            (type === String && isString(arg)) ||
-            (type === Function && isFunction(arg)) ||
-            (type === Object && isObject(arg));
-    }
+    function matchesSignature(args, signature) {
+        // the signature is an array of functions that return truthy values if the input is of the proper type
+        var success = (args.length === signature.length),
+            i;
 
-    function matchesType(arg, type) {
-        try {
-            return arg instanceof type;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    function matches(arg, type) {
-        return matchesSpecialType(arg, type) ||
-            matchesPredefinedType(arg, type) ||
-            matchesType(arg, type);
-    }
-
-    function typeToString(obj) {
-        var result = '';
-
-        if (obj === null) {
-            result = 'null';
-        } else if (typeof obj === 'undefined') {
-            result = 'undefined';
-        } else if (obj === tj.any) {
-            result = 'tj.any';
-        } else if (obj === tj.defined) {
-            result = 'tj.defined';
-        } else if (obj === tj.realNumber) {
-            result = 'tj.realNumber';
-        } else if (obj === tj.integer) {
-            result = 'tj.integer';
-        } else {
-            result = obj.name;
+        for (i = 0; i < args.length && success; i++) {
+            success = signature[i](args[i]);
         }
 
-        return result;
+        return success;
     }
 
-    function objToTypeString(obj) {
-        return obj.constructor && obj.constructor.name;
-    }
-
-    function stringify(elements, map) {
-        var result = [], i;
-
-        for (i = 0; i < elements.length; i++) {
-            result.push(map(elements[i]));
-        }
-
-        return '(' + result.join(', ') + ')';
-    }
-
-    function pushEvent(eventName, args) {
-        events.push({
-            name : eventName,
-            args : args
-        });
-
-        setTimeout(runEvents, 0);
+    function throwError(e) {
+        //if (canThrowErrors) {
+            throw e;
+        //}
     }
 
     function runEvents() {
-        var readyEvents = events,
+        var events = queuedEvents,
             event,
-            callbacks,
-            i,
-            j;
+            i;
+        queuedEvents = [];
 
-        events = [];
+        for (i = 0; i < events.length; i++) {
+            event = events[i];
 
-        for (i = 0; i < readyEvents.length; i++) {
-            event = readyEvents[i];
-            callbacks = eventSubscribers[event.name];
-            for (j = 0; j < callbacks.length; j++) {
-                callbacks[j].apply(tj, event.args);
-            }
+            event.fn.apply(global, event.args);
         }
     }
 
-    tj.publish = function (eventName) {
-        var callbackArguments = [],
-            signature,
-            signatureMatches,
-            i;
+    function publish(eventName /* ... arguments */) {
+        var callbackArguments = Array.prototype.slice.call(arguments, 1),
+            signature = eventSignatures[eventName],
+            subscribers = eventSubscribers[eventName];
 
-        if (!isString(eventName)) {
-            throw new Error('tj.publish(): The event name must be a string');
-        }
-        if (!eventSubscribers.hasOwnProperty(eventName)) {
-            throw new Error('tj.publish(): ' + eventName + ' is not a registered event.');
+        if (!is.string(eventName)) {
+            throwError(pubEventNameError);
         }
 
-        for (i = 1; i < arguments.length; i++) {
-            callbackArguments.push(arguments[i]);
+        if (signature && !matchesSignature(callbackArguments, signature)) {
+            throwError(pubSignatureMismatch);
         }
 
-        signature = eventSignatures[eventName];
-        signatureMatches = (signature.length === callbackArguments.length);
-
-        for (i = 0; i < signature.length; i++) {
-            signatureMatches = signatureMatches && matches(callbackArguments[i], signature[i]);
+        for (var i = 0; subscribers && i < subscribers.length; i++) {
+            queuedEvents.push({
+                fn   : subscribers[i].fn,
+                args : callbackArguments
+            });
         }
 
-        if (signatureMatches) {
-            pushEvent(eventName, callbackArguments);
-        } else {
-            throw new Error('tj.publish(): Argument mismatch in event ' + eventName +
-                '\n    expected: ' + stringify(signature, typeToString) +
-                '\n    received: ' + stringify(callbackArguments, objToTypeString));
-        }
-    };
+        runEvents();
+    }
 
-    tj.subscribe = function (eventName) {
-        var signature, callback, i, oldSignature, signaturesMatch, arg;
+    function subscribe(eventName /* argumentTypes..., fn */) {
+        var callback = arguments[arguments.length - 1],
+            subscriber;
 
-        if (!isString(eventName)) {
-            throw new Error('tj.subscribe(): The event name must be a string');
-        }
-        callback = arguments[arguments.length - 1];
-        if (!isFunction(callback)) {
-            throw new Error('tj.subscribe(): The last parameter must be a callback function');
+        if (!is.string(eventName)) {
+            throwError(pubEventNameError);
         }
 
-        signature = [];
-        for (i = 1; i < arguments.length - 1; i++) {
-            arg = arguments[i];
-            if (!isType(arg)) {
-                throw new Error('tj.subscribe(): Signature can only consist of constructors');
+        if (!is.fn(callback)) {
+            throwError(noCallbackError);
+        }
+
+        subscriber = {
+            eventName : eventName,
+            fn        : arguments[arguments.length - 1],
+            token     : getToken()
+        };
+
+        if (!(eventName in eventSubscribers)) {
+            // since this is the first time we have seen a subscriber to this event,
+            // we must record the specified subscriber signature
+            var eventSignature = Array.prototype.slice.call(arguments, 1, arguments.length - 1); // remove first and last element
+
+            if (!isValidSignature(eventSignature)) {
+                throwError(invalidSignatureError);
             }
 
-            signature.push(arg);
-        }
-
-        if (eventSignatures.hasOwnProperty(eventName)) {
-            // there is already a subscriber to this event, so check if the signature matches
-            oldSignature = eventSignatures[eventName];
-            signaturesMatch = signature.length === oldSignature.length;
-
-            for (i = 0; i < signature.length && signaturesMatch; i++) {
-                signaturesMatch = signaturesMatch && signature[i] === oldSignature[i];
-            }
-
-            if (!signaturesMatch) {
-                throw new Error('tj.subscribe(): Event subscriber signature does not match previous subscriber(s) for event ' + eventName +
-                    '\n    old signature: ' + stringify(oldSignature, typeToString) +
-                    '\n    new signature: ' + stringify(signature, typeToString));
-            }
-        }
-
-        eventSignatures[eventName] = signature;
-        if (!eventSubscribers.hasOwnProperty(eventName)) {
+            eventSignatures[eventName] = eventSignature;
             eventSubscribers[eventName] = [];
         }
-        eventSubscribers[eventName].push(callback);
-    };
 
-    tj.toString = function () {
-        return 'You are running tj ' + version;
-    };
+        eventSubscribers[eventName].push(subscriber);
+        allSubscribers[subscriber.token] = subscriber;
 
-    // for testing purposes
-    tj._matches = matches;
-    tj._typeToString = typeToString;
-}(typeof exports === 'undefined' ? this.tj = {} : exports));
+        return subscriber.token;
+    }
+
+    function unsubscribe(token) {
+        var subscriber = allSubscribers[token];
+
+        if (!is.object(subscriber) || !allSubscribers.hasOwnProperty(token)) {
+            throwError(badTokenError);
+        }
+
+        if (subscriber) {
+            var subscribers = eventSubscribers[subscriber.eventName];
+
+            for (var i = 0; i < subscribers.length; i++) {
+                if (subscribers[i].token === token) {
+                    removeElement(subscribers, i);
+                    break;
+                }
+            }
+
+            delete allSubscribers[token];
+        }
+
+        return !!subscriber;
+    }
+
+    tj.publish = publish;
+    tj.subscribe = subscribe;
+    tj.unsubscribe = unsubscribe;
+}(typeof exports === 'undefined' ? this.tj = {} : exports, this));
