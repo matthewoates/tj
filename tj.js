@@ -10,6 +10,18 @@
             return Object.prototype.toString.call(a) === '[object Array]';
         };
 
+        is.arrayOf = function (t) {
+            return function (a) {
+                var ok = is.array(a);
+
+                for (var i = 0; i < a.length && ok; i++) {
+                    ok = t(a[i]);
+                }
+
+                return !!ok;
+            };
+        };
+
         is.bool = function (b) {
             return !!b === b;
         };
