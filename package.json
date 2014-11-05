@@ -18,7 +18,7 @@
     "node.js"
   ],
   "scripts": {
-    "test": "mocha -R list -r tj"
+    "test": "mocha -R list -r tj --reporter spec"
   },
   "license": "MIT",
   "engines": {
