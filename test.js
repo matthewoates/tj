@@ -40,6 +40,15 @@ describe('clearAllSubscriptions() tests', function () {
     });
 });
 
+describe('subscribe() tests', function () {
+    it('subscribe() always returns a different token', function () {
+        var token1 = tj.subscribe('foo', function () {});
+        var token2 = tj.subscribe('foo', function () {});
+        
+        expect(token1).to.not.equal(token2);
+    });
+});
+
 describe('subscribe() and publishSync() tests', function () {
     it('publishSync() with one event', function () {
         var ok = false;
