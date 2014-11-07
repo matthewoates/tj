@@ -60,6 +60,23 @@
     });
 
     tj.unsubscribe = (function (token) {
+        var event;
+      
+        for (event in allSubscribers) {
+            if (allSubscribers.hasOwnProperty(event)) {
+                var eventSubscribers = allSubscribers[event];
+                
+                for (var i = 0; i < eventSubscribers.length; i++) {
+                    var eventSubscriber = eventSubscribers[i];
+                    
+                    if (eventSubscriber.token === token) {
+                        eventSubscribers.splice(i, 1); // remove the subscriber
+                        return true; // nothing else to do
+                    }
+                }
+            }
+        }
+        
         return false;
     });
 }(typeof exports === 'undefined' ? this.tj = {} : exports, this));

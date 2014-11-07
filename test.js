@@ -105,6 +105,11 @@ describe('subscribe(), unsubscribe(), and publishSync() tests', function () {
             done();
         }, 0);
     });
+  
+    it('unsubscribe with a bogus token returns false', function () {
+        // the empty string will never be a valid token
+        expect(tj.unsubscribe('')).to.be(false);
+    });
 });
 
 // type checking
