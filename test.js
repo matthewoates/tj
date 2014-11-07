@@ -52,6 +52,40 @@ describe('subscribe() and publishSync() tests', function () {
         
         expect(ok).to.be(true);
     });
+    
+    it('publishSync() calls run in the proper order', function () {
+        var order = [];
+        
+        tj.subscribe('bar', function () {
+            order.push('bar1');
+        });
+        
+        tj.subscribe('bar', function () {
+            order.push('bar2');
+        });
+        
+        tj.subscribe('baz', function () {
+            order.push('baz1');
+        });
+        
+        tj.subscribe('baz', function () {
+            order.push('baz2');
+        });
+        
+        tj.subscribe('foo', function () {
+            order.push('foo1');
+        });
+        
+        tj.subscribe('foo', function () {
+            order.push('foo2');
+        });
+        
+        tj.publishSync('foo');
+        tj.publishSync('bar');
+        tj.publishSync('baz');
+        
+        expect(order).to.eql(['foo1', 'foo2', 'bar1', 'bar2', 'baz1', 'baz2']);
+    });
 });
 
 describe('subscribe() and publish() tests', function () {
@@ -86,6 +120,43 @@ describe('subscribe() and publish() tests', function () {
             done();
         }, 0);
     });
+    
+    it('publish() calls run in the proper order', function (done) {
+        var order = [];
+        
+        tj.subscribe('bar', function () {
+            order.push('bar1');
+        });
+        
+        tj.subscribe('bar', function () {
+            order.push('bar2');
+        });
+        
+        tj.subscribe('baz', function () {
+            order.push('baz1');
+        });
+        
+        tj.subscribe('baz', function () {
+            order.push('baz2');
+        });
+        
+        tj.subscribe('foo', function () {
+            order.push('foo1');
+        });
+        
+        tj.subscribe('foo', function () {
+            order.push('foo2');
+        });
+        
+        tj.publish('foo');
+        tj.publish('bar');
+        tj.publish('baz');
+        
+        setTimeout(function () {
+            expect(order).to.eql(['foo1', 'foo2', 'bar1', 'bar2', 'baz1', 'baz2']);
+            done();
+        }, 0);
+    });
 });
 
 describe('subscribe(), unsubscribe(), and publishSync() tests', function () {
@@ -109,6 +180,46 @@ describe('subscribe(), unsubscribe(), and publishSync() tests', function () {
     it('unsubscribe with a bogus token returns false', function () {
         // the empty string will never be a valid token
         expect(tj.unsubscribe('')).to.be(false);
+    });
+});
+
+// argument passing
+
+describe('arguments are sent to all subscribers', function () {
+    it('two arguments are preserved', function () {
+        var ok = false;
+        
+        tj.subscribe('foo', function (a, b) {
+            ok = (a === 1 && b === 2);
+        });
+        
+        tj.publishSync('foo', 1, 2);
+        
+        expect(ok).to.be(true);
+    });
+    
+    it('no extra arguments are passed when you send no arguments', function () {
+        var ok = false;
+        
+        tj.subscribe('foo', function () {
+            ok = (arguments.length === 0);
+        });
+        
+        tj.publishSync('foo');
+        
+        expect(ok).to.be(true);
+    });
+    
+    it('no extra arguments are passed when you send 2 arguments', function () {
+        var ok = false;
+        
+        tj.subscribe('foo', function (a, b) {
+            ok = (arguments.length === 2);
+        });
+        
+        tj.publishSync('foo', 1, 2);
+        
+        expect(ok).to.be(true);
     });
 });
 

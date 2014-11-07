@@ -11,7 +11,7 @@
         return String(numTokensRequested);
     });
     
-    var emit = (function (event) {
+    var emit = (function (event, args) {
         if (allSubscribers.hasOwnProperty(event)) {
             var eventSubscribers = allSubscribers[event];
             
@@ -19,7 +19,7 @@
                 var fn = eventSubscribers[i].fn;
 
                 try {
-                    fn();
+                    fn.apply(global, args)
                 } catch (e) {
                     setTimeout(function () {
                         throw e;
@@ -29,18 +29,23 @@
         }
     });
     
+
     tj.clearAllSubscriptions = (function () {
         allSubscribers = {};
     });
 
     tj.publish = (function (event) {
+        var args = [].slice.call(arguments, 1, arguments.length);
+        
         setTimeout(function () {
-            emit(event);
+            emit(event, args);
         }, 0);
     });
     
     tj.publishSync = (function (event) {
-        emit(event);
+        var args = [].slice.call(arguments, 1, arguments.length);
+
+        emit(event, args);
     });
 
     tj.subscribe = (function (event, fn) {
