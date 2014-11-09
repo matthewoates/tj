@@ -19,23 +19,23 @@ describe('sanity check', function () {
 describe('clearAllSubscriptions() tests', function () {
     it('clearing subscriptions should prevent publishSync() from firing events', function () {
         var ok = true;
-        
+
         tj.subscribe('foo', function () {
             ok = false;
         });
-        
+
         tj.clearAllSubscriptions();
         tj.publishSync('foo');
-        
+
         expect(ok).to.be(true);
     });
-    
+
     it('clearing subscriptions should cause all unsubscribe calls to return false', function () {
         var fn = function () {};
-        
+
         tj.subscribe('foo', fn);
         tj.clearAllSubscriptions();
-        
+
         expect(tj.unsubscribe(fn)).to.be(false);
     });
 });
@@ -44,7 +44,7 @@ describe('subscribe() tests', function () {
     it('subscribe() always returns a different token', function () {
         var token1 = tj.subscribe('foo', function () {});
         var token2 = tj.subscribe('foo', function () {});
-        
+
         expect(token1).to.not.equal(token2);
     });
 });
@@ -52,47 +52,47 @@ describe('subscribe() tests', function () {
 describe('subscribe() and publishSync() tests', function () {
     it('publishSync() with one event', function () {
         var ok = false;
-        
+
         tj.subscribe('foo', function () {
             ok = true;
         });
-        
+
         tj.publishSync('foo');
-        
+
         expect(ok).to.be(true);
     });
-    
+
     it('publishSync() calls run in the proper order', function () {
         var order = [];
-        
+
         tj.subscribe('bar', function () {
             order.push('bar1');
         });
-        
+
         tj.subscribe('bar', function () {
             order.push('bar2');
         });
-        
+
         tj.subscribe('baz', function () {
             order.push('baz1');
         });
-        
+
         tj.subscribe('baz', function () {
             order.push('baz2');
         });
-        
+
         tj.subscribe('foo', function () {
             order.push('foo1');
         });
-        
+
         tj.subscribe('foo', function () {
             order.push('foo2');
         });
-        
+
         tj.publishSync('foo');
         tj.publishSync('bar');
         tj.publishSync('baz');
-        
+
         expect(order).to.eql(['foo1', 'foo2', 'bar1', 'bar2', 'baz1', 'baz2']);
     });
 });
@@ -100,67 +100,67 @@ describe('subscribe() and publishSync() tests', function () {
 describe('subscribe() and publish() tests', function () {
     it('calling publish() before subscribe() on the same tick should register', function (done) {
         var ok = false;
-        
+
         tj.subscribe('foo', function () {
             ok = true;
         });
-        
+
         tj.publish('foo');
-        
+
         setTimeout(function () {
             expect(ok).to.be(true);
-            
+
             done();
         }, 0);
     });
-    
+
     it('calling publish() after subscribe() on the same tick should register', function (done) {
         var ok = false;
-        
+
         tj.publish('foo');
-        
+
         tj.subscribe('foo', function () {
             ok = true;
         });
-        
+
         setTimeout(function () {
             expect(ok).to.be(true);
-            
+
             done();
         }, 0);
     });
-    
+
     it('publish() calls run in the proper order', function (done) {
         var order = [];
-        
+
         tj.subscribe('bar', function () {
             order.push('bar1');
         });
-        
+
         tj.subscribe('bar', function () {
             order.push('bar2');
         });
-        
+
         tj.subscribe('baz', function () {
             order.push('baz1');
         });
-        
+
         tj.subscribe('baz', function () {
             order.push('baz2');
         });
-        
+
         tj.subscribe('foo', function () {
             order.push('foo1');
         });
-        
+
         tj.subscribe('foo', function () {
             order.push('foo2');
         });
-        
+
         tj.publish('foo');
         tj.publish('bar');
         tj.publish('baz');
-        
+
         setTimeout(function () {
             expect(order).to.eql(['foo1', 'foo2', 'bar1', 'bar2', 'baz1', 'baz2']);
             done();
@@ -174,18 +174,18 @@ describe('subscribe(), unsubscribe(), and publishSync() tests', function () {
         var token = tj.subscribe('foo', function () {
             ok = false;
         });
-        
+
         tj.unsubscribe(token);
-        
+
         tj.publish('foo');
-        
+
         setTimeout(function () {
             expect(ok).to.be(true);
-            
+
             done();
         }, 0);
     });
-  
+
     it('unsubscribe with a bogus token returns false', function () {
         // the empty string will never be a valid token
         expect(tj.unsubscribe('')).to.be(false);
@@ -197,39 +197,47 @@ describe('subscribe(), unsubscribe(), and publishSync() tests', function () {
 describe('arguments are sent to all subscribers', function () {
     it('two arguments are preserved', function () {
         var ok = false;
-        
+
         tj.subscribe('foo', function (a, b) {
             ok = (a === 1 && b === 2);
         });
-        
+
         tj.publishSync('foo', 1, 2);
-        
+
         expect(ok).to.be(true);
     });
-    
+
     it('no extra arguments are passed when you send no arguments', function () {
         var ok = false;
-        
+
         tj.subscribe('foo', function () {
             ok = (arguments.length === 0);
         });
-        
+
         tj.publishSync('foo');
-        
+
         expect(ok).to.be(true);
     });
-    
+
     it('no extra arguments are passed when you send 2 arguments', function () {
         var ok = false;
-        
+
         tj.subscribe('foo', function (a, b) {
             ok = (arguments.length === 2);
         });
-        
+
         tj.publishSync('foo', 1, 2);
-        
+
         expect(ok).to.be(true);
     });
 });
 
 // type checking
+
+describe('accepts arguments of correct type', function () {
+
+});
+
+describe('does not accept arguments of incorrect type', function () {
+
+});
