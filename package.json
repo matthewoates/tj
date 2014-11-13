@@ -1,6 +1,6 @@
 {
   "name": "tj",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "author": "Matthew Oates",
   "description": "A type safe publish subscribe API in JavaScript",
   "main": "./tj.js",
@@ -25,7 +25,7 @@
     "node": ">=0.6"
   },
   "dependencies": {
-    "is-simple": "2.0.0"
+    "is-simple": "2.0.1"
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
