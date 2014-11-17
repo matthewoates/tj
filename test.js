@@ -2,6 +2,7 @@ if (typeof require !== 'undefined') {
     // node.js
     global.expect = require('expect.js');
     global.tj = require('./tj');
+    global.is = require('is-simple');
 }
 
 beforeEach(function () {
@@ -198,7 +199,7 @@ describe('arguments are sent to all subscribers', function () {
     it('two arguments are preserved', function () {
         var ok = false;
 
-        tj.subscribe('foo', function (a, b) {
+        tj.subscribe('foo', is.number, is.number, function (a, b) {
             ok = (a === 1 && b === 2);
         });
 
@@ -222,7 +223,7 @@ describe('arguments are sent to all subscribers', function () {
     it('no extra arguments are passed when you send 2 arguments', function () {
         var ok = false;
 
-        tj.subscribe('foo', function (a, b) {
+        tj.subscribe('foo', is.number, is.number, function (a, b) {
             ok = (arguments.length === 2);
         });
 
@@ -235,9 +236,76 @@ describe('arguments are sent to all subscribers', function () {
 // type checking
 
 describe('accepts arguments of correct type', function () {
+    it('accepts arguments of varying types', function () {
+        var ok = false;
 
+        tj.subscribe('foo', is.object, is.number, is.undefined, is.boolean, function (obj, n, undef, bool) {
+            expect(obj).to.eql({});
+            expect(n).to.be(5);
+            expect(undef).to.be(undefined);
+            expect(bool).to.be(true);
+            ok = true;
+        });
+
+        tj.publishSync('foo', {}, 5, undefined, true);
+        expect(ok).to.be(true);
+    });
 });
 
 describe('does not accept arguments of incorrect type', function () {
+    it('does not accept too few arguments', function () {
+        var ok = true;
 
+        tj.subscribe('foo', is.number, is.number, is.number, function () {
+            ok = false;
+        });
+
+        expect(function () {
+            tj.publish('foo', 1, 1);
+        }).to.throwError();
+
+        expect(function () {
+            tj.publish('foo', 1);
+        }).to.throwError();
+
+        expect(function () {
+            tj.publish('foo');
+        }).to.throwError();
+    });
+
+    it('does not accept too many arguments', function () {
+        var ok = true;
+
+        tj.subscribe('foo', is.number, is.number, is.number, function () {
+            ok = false;
+        });
+
+        expect(function () {
+            tj.publish('foo', 1, 1, 1, 1);
+        }).to.throwError();
+
+        expect(function () {
+            tj.publish('foo', 1, 1, 1, 1, 1);
+        }).to.throwError();
+
+        expect(function () {
+            tj.publish('foo', 1, 1, 1, 1, 1, 1);
+        }).to.throwError();
+
+        expect(ok).to.be(true);
+    });
+
+    it('does not accept switched arguments', function () {
+        var ok = true;
+
+        tj.subscribe('foo', is.number, is.string, function () {
+            ok = false;
+        });
+
+        expect(function () {
+            tj.publish('foo', '1', 1);
+        }).to.throwError();
+
+        expect(ok).to.be(true);
+    });
 });

@@ -29,6 +29,26 @@
         }
     });
 
+    var checkArgs = (function (event, args) {
+        if (allSubscribers.hasOwnProperty(event)) {
+            var eventSubscribers = allSubscribers[event];
+            var valid = true;
+
+            for (var i = 0; i < eventSubscribers.length && valid; i++) {
+                var signature = eventSubscribers[i].signature;
+
+                valid = signature.length === args.length;
+
+                for (var j = 0; j < signature.length && valid; j++) {
+                    valid = signature[j](args[j]);
+                }
+            }
+
+            if (!valid) {
+                throw new Error('Invalid args for event ' + event);
+            }
+        }
+    });
 
     tj.clearAllSubscriptions = (function () {
         allSubscribers = {};
@@ -36,6 +56,8 @@
 
     tj.publish = (function (event) {
         var args = [].slice.call(arguments, 1, arguments.length);
+
+        checkArgs(event, args);
 
         setTimeout(function () {
             emit(event, args);
@@ -45,11 +67,15 @@
     tj.publishSync = (function (event) {
         var args = [].slice.call(arguments, 1, arguments.length);
 
+        checkArgs(event, args);
+
         emit(event, args);
     });
 
-    tj.subscribe = (function (event, fn) {
+    tj.subscribe = (function (event) {
         var token = getUniqueToken();
+        var fn = arguments[arguments.length - 1];
+        var signature = [].slice.call(arguments, 1, arguments.length - 1);
 
         if (!allSubscribers.hasOwnProperty(event)) {
             // this is the first subscriber to this event
@@ -58,6 +84,7 @@
 
         allSubscribers[event].push({
             token: token,
+            signature: signature,
             fn: fn
         });
 
